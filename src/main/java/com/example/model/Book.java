@@ -7,19 +7,16 @@ public class Book {
 
     private int bookId;
 
-    @NotBlank(message = "Book name is required")
+    @NotBlank(message = "Book name cannot be empty")
     private String bookName;
 
-    @NotBlank(message = "Author name is required")
+    @NotBlank(message = "Author name cannot be empty")
     private String author;
 
-    @Positive(message = "Price must be positive")
-    private Double price;
+    @Positive(message = "Price must be greater than 0")
+    private double price;
 
-    private Boolean available;
-
-    public Book() {
-    }
+    private boolean available;
 
     public int getBookId() {
         return bookId;
@@ -45,19 +42,19 @@ public class Book {
         this.author = author;
     }
 
-    public Double getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
-    public Boolean getAvailable() {
+    public boolean isAvailable() {
         return available;
     }
 
-    public void setAvailable(Boolean available) {
+    public void setAvailable(boolean available) {
         this.available = available;
     }
 }
