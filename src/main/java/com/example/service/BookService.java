@@ -1,149 +1,120 @@
 package com.example.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.example.dto.BookRequestDTO;
+import com.example.dto.BookResponseDTO;
+import com.example.entity.Book;
 import com.example.exception.BookAlreadyExistsException;
 import com.example.exception.BookNotFoundException;
-import com.example.model.Book;
+import com.example.exception.ExceptionConstant;
+import com.example.mapper.BookMapper;
+import com.example.repository.BookRepository;
 
 @Service
 public class BookService {
 
-    private List<Book> books = new ArrayList<>();
+    private final BookRepository repository;
+
+    private final BookMapper mapper;
 
 
-    // SAMPLE INPUTS
+    public BookService(
+            BookRepository repository,
+            BookMapper mapper) {
 
-    public BookService() {
-
-        Book book1 = new Book();
-        book1.setBookId(1);
-        book1.setBookName("Java Programming");
-        book1.setAuthor("James Gosling");
-        book1.setPrice(550);
-        book1.setAvailable(true);
-
-
-        Book book2 = new Book();
-        book2.setBookId(2);
-        book2.setBookName("Spring Boot");
-        book2.setAuthor("Craig Walls");
-        book2.setPrice(650);
-        book2.setAvailable(true);
-
-
-        Book book3 = new Book();
-        book3.setBookId(3);
-        book3.setBookName("Clean Code");
-        book3.setAuthor("Robert Martin");
-        book3.setPrice(750);
-        book3.setAvailable(false);
-
-
-        Book book4 = new Book();
-        book4.setBookId(4);
-        book4.setBookName("Python Programming");
-        book4.setAuthor("Guido van Rossum");
-        book4.setPrice(600);
-        book4.setAvailable(true);
-
-
-        Book book5 = new Book();
-        book5.setBookId(5);
-        book5.setBookName("Data Structures");
-        book5.setAuthor("Mark Allen");
-        book5.setPrice(700);
-        book5.setAvailable(true);
-
-
-        books.add(book1);
-        books.add(book2);
-        books.add(book3);
-        books.add(book4);
-        books.add(book5);
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
 
     // CREATE
 
-    public Book addBook(Book book) {
+    public BookResponseDTO addBook(BookRequestDTO dto) {
 
-        // Check whether ID already exists
+        if (repository.existsById(dto.getBookId())) {
 
-        for (Book existingBook : books) {
-
-            if (existingBook.getBookId() == book.getBookId()) {
-
-                throw new BookAlreadyExistsException(
-                        "Book with ID " + book.getBookId()
-                        + " already exists");
-            }
+            throw new BookAlreadyExistsException(
+                    String.format(
+                            ExceptionConstant.BOOK_ALREADY_EXISTS,
+                            dto.getBookId()));
         }
 
-        books.add(book);
 
-        return book;
+        Book book = mapper.toBook(dto);
+
+        Book savedBook = repository.save(book);
+
+        return mapper.toResponseDTO(savedBook);
     }
 
 
     // READ ALL
 
-    public List<Book> getAllBooks() {
+    public List<BookResponseDTO> getAllBooks() {
+
+        List<Book> books = repository.findAll();
+
 
         if (books.isEmpty()) {
 
             throw new BookNotFoundException(
-                    "No books available in the library");
+                    ExceptionConstant.NO_BOOKS_AVAILABLE);
         }
 
-        return books;
+
+        return books.stream()
+                .map(mapper::toResponseDTO)
+                .toList();
     }
 
 
     // READ BY ID
 
-    public Book getBookById(int id) {
+    public BookResponseDTO getBookById(int id) {
 
-        for (Book book : books) {
+        Book book = repository.findById(id)
+                .orElseThrow(() ->
+                        new BookNotFoundException(
+                                String.format(
+                                        ExceptionConstant.BOOK_NOT_FOUND,
+                                        id)));
 
-            if (book.getBookId() == id) {
 
-                return book;
-            }
-        }
-
-        throw new BookNotFoundException(
-                "Book with ID " + id + " not found");
+        return mapper.toResponseDTO(book);
     }
 
 
     // UPDATE
 
-    public Book updateBook(int id, Book newBook) {
-
-        Book oldBook = getBookById(id);
-
-        oldBook.setBookName(newBook.getBookName());
-        oldBook.setAuthor(newBook.getAuthor());
-        oldBook.setPrice(newBook.getPrice());
-        oldBook.setAvailable(newBook.isAvailable());
-
-        return oldBook;
-    }
+    public BookResponseDTO updateBook(
+            int id,
+            BookRequestDTO dto) {
 
 
-    // UPDATE AVAILABILITY
+        Book oldBook = repository.findById(id)
+                .orElseThrow(() ->
+                        new BookNotFoundException(
+                                String.format(
+                                        ExceptionConstant.BOOK_NOT_FOUND,
+                                        id)));
 
-    public Book updateAvailability(int id, boolean available) {
 
-        Book book = getBookById(id);
+        oldBook.setBookName(dto.getBookName());
 
-        book.setAvailable(available);
+        oldBook.setAuthor(dto.getAuthor());
 
-        return book;
+        oldBook.setPrice(dto.getPrice());
+
+        oldBook.setAvailability(dto.getAvailability());
+
+
+        Book updatedBook = repository.save(oldBook);
+
+
+        return mapper.toResponseDTO(updatedBook);
     }
 
 
@@ -151,10 +122,19 @@ public class BookService {
 
     public String deleteBook(int id) {
 
-        Book book = getBookById(id);
 
-        books.remove(book);
+        if (!repository.existsById(id)) {
 
-        return "Book deleted successfully";
+            throw new BookNotFoundException(
+                    String.format(
+                            ExceptionConstant.BOOK_NOT_FOUND,
+                            id));
+        }
+
+
+        repository.deleteById(id);
+
+
+        return ExceptionConstant.BOOK_DELETED;
     }
 }

@@ -1,9 +1,11 @@
-package com.example.model;
+package com.example.dto;
+
+import com.example.enums.BookAvailability;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
-public class Book {
+public class BookRequestDTO {
 
     private int bookId;
 
@@ -16,7 +18,8 @@ public class Book {
     @Positive(message = "Price must be greater than 0")
     private double price;
 
-    private boolean available;
+    private BookAvailability availability;
+
 
     public int getBookId() {
         return bookId;
@@ -26,6 +29,7 @@ public class Book {
         this.bookId = bookId;
     }
 
+
     public String getBookName() {
         return bookName;
     }
@@ -33,6 +37,7 @@ public class Book {
     public void setBookName(String bookName) {
         this.bookName = bookName;
     }
+
 
     public String getAuthor() {
         return author;
@@ -42,6 +47,7 @@ public class Book {
         this.author = author;
     }
 
+
     public double getPrice() {
         return price;
     }
@@ -50,11 +56,12 @@ public class Book {
         this.price = price;
     }
 
-    public boolean isAvailable() {
-        return available;
+
+    public BookAvailability getAvailability() {
+        return availability;
     }
 
-    public void setAvailable(boolean available) {
-        this.available = available;
+    public void setAvailability(BookAvailability availability) {
+        this.availability = availability;
     }
 }

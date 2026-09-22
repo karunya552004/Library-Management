@@ -4,28 +4,26 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
-
-import com.example.model.Book;
+import com.example.dto.BookRequestDTO;
+import com.example.dto.BookResponseDTO;
 import com.example.service.BookService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/books")
 public class BookController {
 
-    private BookService service;
 
+    private final BookService service;
 
-    // Constructor Injection
 
     public BookController(BookService service) {
 
@@ -36,16 +34,17 @@ public class BookController {
     // CREATE
 
     @PostMapping
-    public Book addBook(@Valid @RequestBody Book book) {
+    public BookResponseDTO addBook(
+            @Valid @RequestBody BookRequestDTO dto) {
 
-        return service.addBook(book);
+        return service.addBook(dto);
     }
 
 
     // READ ALL
 
     @GetMapping
-    public List<Book> getAllBooks() {
+    public List<BookResponseDTO> getAllBooks() {
 
         return service.getAllBooks();
     }
@@ -54,7 +53,8 @@ public class BookController {
     // READ BY ID
 
     @GetMapping("/{id}")
-    public Book getBookById(@PathVariable int id) {
+    public BookResponseDTO getBookById(
+            @PathVariable int id) {
 
         return service.getBookById(id);
     }
@@ -63,29 +63,19 @@ public class BookController {
     // UPDATE
 
     @PutMapping("/{id}")
-    public Book updateBook(
+    public BookResponseDTO updateBook(
             @PathVariable int id,
-            @Valid @RequestBody Book book) {
+            @Valid @RequestBody BookRequestDTO dto) {
 
-        return service.updateBook(id, book);
-    }
-
-
-    // UPDATE AVAILABILITY
-
-    @PatchMapping("/{id}")
-    public Book updateAvailability(
-            @PathVariable int id,
-            @RequestParam boolean available) {
-
-        return service.updateAvailability(id, available);
+        return service.updateBook(id, dto);
     }
 
 
     // DELETE
 
     @DeleteMapping("/{id}")
-    public String deleteBook(@PathVariable int id) {
+    public String deleteBook(
+            @PathVariable int id) {
 
         return service.deleteBook(id);
     }
