@@ -2,6 +2,8 @@ package com.example.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.dto.BookRequestDTO;
@@ -20,7 +22,6 @@ public class BookService {
 
     private final BookMapper mapper;
 
-
     public BookService(
             BookRepository repository,
             BookMapper mapper) {
@@ -29,18 +30,9 @@ public class BookService {
         this.mapper = mapper;
     }
 
-
     // CREATE
 
     public BookResponseDTO addBook(BookRequestDTO dto) {
-
-        if (repository.existsById(dto.getBookId())) {
-
-            throw new BookAlreadyExistsException(
-                    String.format(
-                            ExceptionConstant.BOOK_ALREADY_EXISTS,
-                            dto.getBookId()));
-        }
 
 
         Book book = mapper.toBook(dto);
@@ -51,12 +43,11 @@ public class BookService {
     }
 
 
-    // READ ALL
+    // READ ALL - PAGINATION + SORTING
 
-    public List<BookResponseDTO> getAllBooks() {
+    public Page<BookResponseDTO> getAllBooks(Pageable pageable) {
 
-        List<Book> books = repository.findAll();
-
+        Page<Book> books = repository.findAll(pageable);
 
         if (books.isEmpty()) {
 
@@ -64,10 +55,7 @@ public class BookService {
                     ExceptionConstant.NO_BOOKS_AVAILABLE);
         }
 
-
-        return books.stream()
-                .map(mapper::toResponseDTO)
-                .toList();
+        return books.map(mapper::toResponseDTO);
     }
 
 
@@ -82,7 +70,6 @@ public class BookService {
                                         ExceptionConstant.BOOK_NOT_FOUND,
                                         id)));
 
-
         return mapper.toResponseDTO(book);
     }
 
@@ -93,14 +80,12 @@ public class BookService {
             int id,
             BookRequestDTO dto) {
 
-
         Book oldBook = repository.findById(id)
                 .orElseThrow(() ->
                         new BookNotFoundException(
                                 String.format(
                                         ExceptionConstant.BOOK_NOT_FOUND,
                                         id)));
-
 
         oldBook.setBookName(dto.getBookName());
 
@@ -110,9 +95,7 @@ public class BookService {
 
         oldBook.setAvailability(dto.getAvailability());
 
-
         Book updatedBook = repository.save(oldBook);
-
 
         return mapper.toResponseDTO(updatedBook);
     }
@@ -122,7 +105,6 @@ public class BookService {
 
     public String deleteBook(int id) {
 
-
         if (!repository.existsById(id)) {
 
             throw new BookNotFoundException(
@@ -131,9 +113,7 @@ public class BookService {
                             id));
         }
 
-
         repository.deleteById(id);
-
 
         return ExceptionConstant.BOOK_DELETED;
     }

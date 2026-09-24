@@ -7,8 +7,6 @@ import jakarta.validation.constraints.Positive;
 
 public class BookRequestDTO {
 
-    private int bookId;
-
     @NotBlank(message = "Book name cannot be empty")
     private String bookName;
 
@@ -19,15 +17,6 @@ public class BookRequestDTO {
     private double price;
 
     private BookAvailability availability;
-
-
-    public int getBookId() {
-        return bookId;
-    }
-
-    public void setBookId(int bookId) {
-        this.bookId = bookId;
-    }
 
 
     public String getBookName() {

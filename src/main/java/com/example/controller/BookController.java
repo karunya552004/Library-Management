@@ -1,7 +1,14 @@
 package com.example.controller;
 
-import java.util.List;
+import java.net.URI;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,9 +28,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/books")
 public class BookController {
 
-
     private final BookService service;
-
 
     public BookController(BookService service) {
 
@@ -34,49 +39,81 @@ public class BookController {
     // CREATE
 
     @PostMapping
-    public BookResponseDTO addBook(
+    public ResponseEntity<BookResponseDTO> addBook(
             @Valid @RequestBody BookRequestDTO dto) {
 
-        return service.addBook(dto);
+        BookResponseDTO response = service.addBook(dto);
+
+        URI location = URI.create("/books/" + response.getBookId());
+
+        return ResponseEntity
+                .created(location)
+                .body(response);
     }
 
 
-    // READ ALL
+    // READ ALL - PAGINATION + SORTING
 
     @GetMapping
-    public List<BookResponseDTO> getAllBooks() {
+    public ResponseEntity<Page<BookResponseDTO>> getAllBooks(
 
-        return service.getAllBooks();
+            @PageableDefault(
+                    size = 5,
+                    sort = "bookId",
+                    direction = Sort.Direction.ASC
+            )
+            Pageable pageable) {
+
+        Page<BookResponseDTO> response =
+                service.getAllBooks(pageable);
+
+        return ResponseEntity
+                .ok()
+                .body(response);
     }
 
 
     // READ BY ID
 
     @GetMapping("/{id}")
-    public BookResponseDTO getBookById(
+    public ResponseEntity<BookResponseDTO> getBookById(
             @PathVariable int id) {
 
-        return service.getBookById(id);
+        BookResponseDTO response =
+                service.getBookById(id);
+
+        return ResponseEntity
+                .ok()
+                .body(response);
     }
 
 
     // UPDATE
 
     @PutMapping("/{id}")
-    public BookResponseDTO updateBook(
+    public ResponseEntity<BookResponseDTO> updateBook(
             @PathVariable int id,
             @Valid @RequestBody BookRequestDTO dto) {
 
-        return service.updateBook(id, dto);
+        BookResponseDTO response =
+                service.updateBook(id, dto);
+
+        return ResponseEntity
+                .ok()
+                .body(response);
     }
 
 
     // DELETE
 
     @DeleteMapping("/{id}")
-    public String deleteBook(
+    public ResponseEntity<String> deleteBook(
             @PathVariable int id) {
 
-        return service.deleteBook(id);
+        String response = service.deleteBook(id);
+
+        return ResponseEntity
+                .ok()
+                .body(response);
     }
 }
